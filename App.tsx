@@ -65,6 +65,9 @@ const App: React.FC = () => {
   };
 
   const renderContent = () => {
+    // FIX: Moved isLoading derivation outside the switch to avoid type narrowing issues.
+    const isLoading = status === WorkflowStatus.PROCESSING;
+
     switch (status) {
       case WorkflowStatus.PROCESSING:
         return <ProcessingStep message={processingMessage} />;
@@ -98,7 +101,7 @@ const App: React.FC = () => {
         );
       case WorkflowStatus.IDLE:
       default:
-        return <InputStep onStart={handleStart} isLoading={status === WorkflowStatus.PROCESSING} />;
+        return <InputStep onStart={handleStart} isLoading={isLoading} />;
     }
   };
 

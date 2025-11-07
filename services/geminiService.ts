@@ -54,11 +54,25 @@ export const fetchJobsFromUrl = async (url: string): Promise<JobDescription[]> =
       }
     });
 
-    const jsonText = response.text.trim();
-    const jobs = JSON.parse(jsonText) as JobDescription[];
-    return jobs;
+    const jsonText = response.text?.trim();
+    if (!jsonText) {
+        console.error("Gemini API returned an empty response for fetchJobsFromUrl.");
+        throw new Error("Received an empty response from the AI while generating job listings.");
+    }
+
+    try {
+        const jobs = JSON.parse(jsonText) as JobDescription[];
+        return jobs;
+    } catch (parseError) {
+        console.error("Failed to parse JSON response from Gemini for fetchJobsFromUrl. Raw response:", jsonText);
+        console.error("Parse error:", parseError);
+        throw new Error("The AI returned a response in an unexpected format. Please try again.");
+    }
   } catch (error) {
     console.error("Error fetching jobs from Gemini:", error);
+    if (error instanceof Error && (error.message.includes('unexpected format') || error.message.includes('empty response'))) {
+        throw error;
+    }
     throw new Error("Failed to generate job listings. The provided URL might be invalid or the service is unavailable.");
   }
 };
@@ -107,11 +121,26 @@ export const analyzeAndCustomize = async (job: JobDescription, userCV: string): 
                 responseSchema: analysisSchema,
             }
         });
-        const jsonText = response.text.trim();
-        const result = JSON.parse(jsonText) as AnalysisResult;
-        return result;
+        const jsonText = response.text?.trim();
+        
+        if (!jsonText) {
+            console.error(`Gemini API returned an empty response for analyzeAndCustomize for job: "${job.title}".`);
+            throw new Error(`Received an empty response from the AI while analyzing the job: "${job.title}".`);
+        }
+
+        try {
+            const result = JSON.parse(jsonText) as AnalysisResult;
+            return result;
+        } catch (parseError) {
+            console.error(`Failed to parse JSON response from Gemini for analyzeAndCustomize for job: "${job.title}". Raw response:`, jsonText);
+            console.error("Parse error:", parseError);
+            throw new Error(`The AI returned a response in an unexpected format for the job: "${job.title}".`);
+        }
     } catch(error) {
-        console.error("Error analyzing and customizing CV:", error);
+        console.error(`Error analyzing and customizing CV for job "${job.title}":`, error);
+        if (error instanceof Error && (error.message.includes('unexpected format') || error.message.includes('empty response'))) {
+            throw error;
+        }
         throw new Error(`Failed to analyze the job: "${job.title}".`);
     }
 };
