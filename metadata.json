@@ -1,0 +1,5 @@
+{
+  "name": "Copy of AI Job Application Assistant",
+  "description": "An n8n-style workflow that takes a LinkedIn job search URL and your CV, finds matching jobs, and customizes your CV for each role to maximize your chances of getting an interview.",
+  "requestFramePermissions": []
+}
